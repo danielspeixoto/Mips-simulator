@@ -8,7 +8,7 @@ void process_instruction() {
     /* execute one instruction here. You should use CURRENT_STATE and modify
      * values in NEXT_STATE. You can call mem_read_32() and mem_write_32() to
      * access memory. */
-     uintToStr(mem_read_32(NEXT_STATE.PC));
+     uintToStr(mem_read_32(CURRENT_STATE.PC));
      strncpy(instruction, conversion, 33);
      printf("%s\n", instruction);
      if(convert(32) == 12) {
@@ -23,7 +23,7 @@ void process_instruction() {
         int rs = convert(5), rt = convert(5), rd = convert(5), shamt = convert(5), funct = convert(6);
         switch (funct) {
             case 32: // ADD
-                NEXT_STATE.REGS[rd] = NEXT_STATE.REGS[rs] + NEXT_STATE.REGS[rt];
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
                 break;
             break;
         }
@@ -35,7 +35,7 @@ void process_instruction() {
                 break;
             case 3: // JAL
                 // Salvando RA
-                NEXT_STATE.REGS[31] = NEXT_STATE.PC;
+                NEXT_STATE.REGS[31] = CURRENT_STATE.PC;
                 NEXT_STATE.PC = address - 4;
                 break;
         }
@@ -46,12 +46,12 @@ void process_instruction() {
         rt = convert(5);
         switch (type) {
             case 4: // BEQ
-                if(NEXT_STATE.REGS[rs] == NEXT_STATE.REGS[rt]) {
+                if(NEXT_STATE.REGS[rs] == CURRENT_STATE.REGS[rt]) {
                     NEXT_STATE.PC += complemento2(16) * 4 - 4;
                 }
                 break;
             case 5: // BNE
-                if(NEXT_STATE.REGS[rs] != NEXT_STATE.REGS[rt]) {
+                if(NEXT_STATE.REGS[rs] != CURRENT_STATE.REGS[rt]) {
                     NEXT_STATE.PC += complemento2(16) * 4 - 4;
                 }
                 break;
@@ -67,65 +67,65 @@ void process_instruction() {
                 break;
             case 8: // ADDI
                 immediate = complemento2(16);
-                NEXT_STATE.REGS[rt] = immediate + NEXT_STATE.REGS[rs];
+                NEXT_STATE.REGS[rt] = immediate + CURRENT_STATE.REGS[rs];
                 break;
             case 9: // ADDIU
                 immediate = convert(16);
-                NEXT_STATE.REGS[rt] = immediate + NEXT_STATE.REGS[rs];
+                NEXT_STATE.REGS[rt] = immediate + CURRENT_STATE.REGS[rs];
             break;
             case 10:// SLTI
-                NEXT_STATE.REGS[rt] = NEXT_STATE.REGS[rs] < complemento2(16) ? 1 : 0;
+                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < complemento2(16) ? 1 : 0;
                 break;
             case 11:// SLTIU
-                NEXT_STATE.REGS[rt] = NEXT_STATE.REGS[rs] < convert(16) ? 1 : 0;
+                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < convert(16) ? 1 : 0;
                 break;
             case 12:// ANDI
-                NEXT_STATE.REGS[rt] = NEXT_STATE.REGS[rs] & 00000000000000000000000000000000;
+                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] & convert(16);
                 break;
             case 13:// ORI
-                NEXT_STATE.REGS[rt] = NEXT_STATE.REGS[rs] | 00000000000000000000000000000000;
+                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] | convert(16);
                 break;
             case 14:// XORI
-                NEXT_STATE.REGS[rt] = NEXT_STATE.REGS[rs] ^ 00000000000000000000000000000000;
+                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] ^ convert(16);
                 break;
             case 15:// LUI
-                NEXT_STATE.REGS[rt] = convert(16) << 16;
+                NEXT_STATE.REGS[rt] = complemento2(16) << 16;
                 break;
-            case 16:// LB
-                uintToStr(mem_read_32(complemento2(16) + NEXT_STATE.REGS[rs]));
+            case 32:// LB
+                uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 8);
                 NEXT_STATE.REGS[rt] = complemento2Char(subbuff, 8);
                 break;
-            case 17:// LH
-                uintToStr(mem_read_32(complemento2(16) + NEXT_STATE.REGS[rs]));
+            case 33:// LH
+                uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 16);
                 NEXT_STATE.REGS[rt] = complemento2Char(subbuff, 16);
                 break;
             case 35:// LW
-                NEXT_STATE.REGS[rt] = mem_read_32(complemento2(16) + NEXT_STATE.REGS[rs]);
+                NEXT_STATE.REGS[rt] = mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]);
                 break;
-            case 19:// LBU
-                uintToStr(mem_read_32(convert(16) + NEXT_STATE.REGS[rs]));
+            case 36:// LBU
+                uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 8);
                 NEXT_STATE.REGS[rt] = complemento2Char(subbuff, 8);
                 break;
-            case 20:// LHU
-                uintToStr(mem_read_32(convert(16) + NEXT_STATE.REGS[rs]));
+            case 37:// LHU
+                uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 16);
                 NEXT_STATE.REGS[rt] = complemento2Char(subbuff, 16);
                 break;
-            case 21:// SB
+            case 40:// SB
                 uintToStr(NEXT_STATE.REGS[rt]);
                 strncpy(subbuff, conversion, 8);
-                mem_write_32(complemento2(16) + NEXT_STATE.REGS[rs], complemento2Char(subbuff, 8));
+                mem_write_32(complemento2(16) + CURRENT_STATE.REGS[rs], complemento2Char(subbuff, 8));
                 break;
-            case 22:// SH
+            case 41:// SH
                 uintToStr(NEXT_STATE.REGS[rt]);
                 strncpy(subbuff, conversion, 16);
-                mem_write_32(complemento2(16) + NEXT_STATE.REGS[rs], complemento2Char(subbuff, 16));
+                mem_write_32(complemento2(16) + CURRENT_STATE.REGS[rs], complemento2Char(subbuff, 16));
                 break;
             case 43:// SW
-                mem_write_32(complemento2(16) + NEXT_STATE.REGS[rs], NEXT_STATE.REGS[rt]);
+                mem_write_32(complemento2(16) + CURRENT_STATE.REGS[rs], NEXT_STATE.REGS[rt]);
                 break;
         }
     }
