@@ -1,0 +1,3 @@
+/home/danielspeixoto/Downloads/Arquivos do lab1/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/danielspeixoto/Downloads/Arquivos do lab1/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/danielspeixoto/Downloads/Arquivos do lab1/cmake-build-debug/CMakeFiles/Arquivos_do_lab1.dir

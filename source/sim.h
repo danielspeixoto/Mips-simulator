@@ -7,7 +7,7 @@ int position;
 char conversion[100];
 
 int potencia(int num, int p);
-int convert(int length);
+int convertInstruction(int length);
 int complemento2(int length);
 int convertChar(char* c, int size, int begin);
 int complemento2Char(char* c, int size);

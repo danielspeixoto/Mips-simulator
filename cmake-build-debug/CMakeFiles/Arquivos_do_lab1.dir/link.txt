@@ -1,0 +1,1 @@
+/usr/bin/cc  -g   CMakeFiles/Arquivos_do_lab1.dir/source/shell.c.o CMakeFiles/Arquivos_do_lab1.dir/source/sim.c.o  -o Arquivos_do_lab1 

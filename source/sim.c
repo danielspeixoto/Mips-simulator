@@ -11,24 +11,129 @@ void process_instruction() {
      uintToStr(mem_read_32(CURRENT_STATE.PC));
      strncpy(instruction, conversion, 33);
      printf("%s\n", instruction);
-     if(convert(32) == 12) {
+     if(convertInstruction(32) == 12) {
         if(NEXT_STATE.REGS[2] == 10) {
             RUN_BIT = 0;
             return;
         }
     }
+    char subbuff[100];
     position = 0;
-    int type = convert(6);
+    int type = convertInstruction(6);
     if(type == 0) { // R - TYPE
-        int rs = convert(5), rt = convert(5), rd = convert(5), shamt = convert(5), funct = convert(6);
+        int rs = convertInstruction(5), rt = convertInstruction(5), rd = convertInstruction(5), shamt = convertInstruction(5), funct = convertInstruction(
+                6), auxI;
         switch (funct) {
+            case 0: // SLL
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] << shamt;
+                break;
+            case 1: // SRL
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] >> shamt;
+                break;
+            case 3: // SRA
+                auxI = 0;
+                // Fazer antes, pois rd pode ser igual a rt
+                if(CURRENT_STATE.REGS[rt] < 0) {
+                    auxI = 1;
+                }
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] >> shamt;
+                if(auxI == 1) {
+                    NEXT_STATE.REGS[rd] -= potencia(2, 31);
+                }
+                break;
+            case 4: // SLLV
+                uintToStr(CURRENT_STATE.REGS[rs]);
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] << convertChar((char *) conversion[11], 4, 0);
+                break;
+            case 6: // SRLV
+                uintToStr(CURRENT_STATE.REGS[rs]);
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] >> convertChar((char *) conversion[11], 4, 0);
+                break;
+            case 7: // SRAV
+                uintToStr(CURRENT_STATE.REGS[rs]);
+                auxI = 0;
+                // Fazer antes, pois rd pode ser igual a rt
+                if(CURRENT_STATE.REGS[rt] < 0) {
+                    auxI = 1;
+                }
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] >> convertChar((char *) conversion[11], 4, 0);
+                if(auxI == 1) {
+                    NEXT_STATE.REGS[rd] -= potencia(2, 31);
+                }
+                break;
+            case 8: // JR
+                NEXT_STATE.PC = CURRENT_STATE.REGS[rs] - 4;
+                break;
+            case 9: // JALR
+                NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
+                NEXT_STATE.PC = CURRENT_STATE.REGS[rs] - 4;
+                break;
+            case 16: // MFHI
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.HI;
+                break;
+            case 17: // MTHI
+                NEXT_STATE.HI = CURRENT_STATE.REGS[rd];
+                break;
+            case 18: // MFLO
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.LO;
+                break;
+            case 19: // MTLO
+                NEXT_STATE.LO = CURRENT_STATE.REGS[rd];
+                break;
+            case 24: // MULT
+                uintToStr(CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt]);
+                NEXT_STATE.HI = (uint32_t) complemento2Char(conversion, 32);
+                NEXT_STATE.LO = (uint32_t) complemento2Char((char *) conversion[32], 32);
+                break;
+            case 25: // MULTU
+                uintToStr(CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt]);
+                NEXT_STATE.HI = (uint32_t) convertChar(conversion, 32, 0);
+                NEXT_STATE.LO = (uint32_t) convertChar(conversion, 32, 32);
+                break;
+            case 26: // DIV
+                NEXT_STATE.HI = CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt];
+                NEXT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt];
+                break;
+            case 27: // DIVU
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                break;
             case 32: // ADD
                 NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
                 break;
-            break;
+            case 33: // ADDU
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                break;
+            case 34: // SUB
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                break;
+            case 35: // SUBU
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                break;
+            case 36: // AND
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                break;
+            case 37: // OR
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                break;
+            case 38: // XOR
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                break;
+            case 39: // NOR
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                break;
+            case 42: // SLT
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] < CURRENT_STATE.REGS[rt] ? 1 : 0;
+                break;
+            case 43: // SLTU
+                uintToStr(CURRENT_STATE.REGS[rs]);
+                strcpy(subbuff, conversion);
+                convertChar(subbuff, 32, 0);
+                uintToStr(CURRENT_STATE.REGS[rt]);
+                NEXT_STATE.REGS[rd] = convertChar(subbuff, 32, 0) < convertChar(conversion, 32, 0) ? 1 : 0;
+                break;
         }
     } else if(type == 2 || type == 3) { // J - TYPE
-        int address = convert(26) * 4;
+        int address = convertInstruction(26) * 4;
         switch (type) {
             case 2: // J
                 NEXT_STATE.PC = (uint32_t) address - 4;
@@ -36,14 +141,13 @@ void process_instruction() {
             case 3: // JAL
                 // Salvando RA
                 NEXT_STATE.REGS[31] = CURRENT_STATE.PC;
-                NEXT_STATE.PC = address - 4;
+                NEXT_STATE.PC = (uint32_t) (address - 4);
                 break;
         }
     } else {
         int rs, rt, immediate;
-        char subbuff[50];
-        rs = convert(5);
-        rt = convert(5);
+        rs = convertInstruction(5);
+        rt = convertInstruction(5);
         switch (type) {
             case 4: // BEQ
                 if(NEXT_STATE.REGS[rs] == CURRENT_STATE.REGS[rt]) {
@@ -70,36 +174,36 @@ void process_instruction() {
                 NEXT_STATE.REGS[rt] = immediate + CURRENT_STATE.REGS[rs];
                 break;
             case 9: // ADDIU
-                immediate = convert(16);
+                immediate = convertInstruction(16);
                 NEXT_STATE.REGS[rt] = immediate + CURRENT_STATE.REGS[rs];
             break;
             case 10:// SLTI
                 NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < complemento2(16) ? 1 : 0;
                 break;
             case 11:// SLTIU
-                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < convert(16) ? 1 : 0;
+                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < convertInstruction(16) ? 1 : 0;
                 break;
             case 12:// ANDI
-                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] & convert(16);
+                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] & convertInstruction(16);
                 break;
             case 13:// ORI
-                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] | convert(16);
+                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] | convertInstruction(16);
                 break;
             case 14:// XORI
-                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] ^ convert(16);
+                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] ^ convertInstruction(16);
                 break;
             case 15:// LUI
-                NEXT_STATE.REGS[rt] = complemento2(16) << 16;
+                NEXT_STATE.REGS[rt] = (uint32_t) (complemento2(16) << 16);
                 break;
             case 32:// LB
                 uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 8);
-                NEXT_STATE.REGS[rt] = complemento2Char(subbuff, 8);
+                NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 8);
                 break;
             case 33:// LH
                 uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 16);
-                NEXT_STATE.REGS[rt] = complemento2Char(subbuff, 16);
+                NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 16);
                 break;
             case 35:// LW
                 NEXT_STATE.REGS[rt] = mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]);
@@ -107,22 +211,24 @@ void process_instruction() {
             case 36:// LBU
                 uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 8);
-                NEXT_STATE.REGS[rt] = complemento2Char(subbuff, 8);
+                NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 8);
                 break;
             case 37:// LHU
                 uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 16);
-                NEXT_STATE.REGS[rt] = complemento2Char(subbuff, 16);
+                NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 16);
                 break;
             case 40:// SB
                 uintToStr(NEXT_STATE.REGS[rt]);
                 strncpy(subbuff, conversion, 8);
-                mem_write_32(complemento2(16) + CURRENT_STATE.REGS[rs], complemento2Char(subbuff, 8));
+                mem_write_32(complemento2(16) + CURRENT_STATE.REGS[rs],
+                             (uint32_t) complemento2Char(subbuff, 8));
                 break;
             case 41:// SH
                 uintToStr(NEXT_STATE.REGS[rt]);
                 strncpy(subbuff, conversion, 16);
-                mem_write_32(complemento2(16) + CURRENT_STATE.REGS[rs], complemento2Char(subbuff, 16));
+                mem_write_32(complemento2(16) + CURRENT_STATE.REGS[rs],
+                             (uint32_t) complemento2Char(subbuff, 16));
                 break;
             case 43:// SW
                 mem_write_32(complemento2(16) + CURRENT_STATE.REGS[rs], NEXT_STATE.REGS[rt]);
@@ -140,7 +246,7 @@ int potencia(int num, int p) {
     return amount;
 }
 
-int convert(int length) {
+int convertInstruction(int length) {
     int temp = 0;
     for(int i = 0; i < length; i++) {
        if(instruction[position] == '1') {
@@ -178,15 +284,15 @@ int complemento2(int length) {
         temp -= potencia(2, length - 1);
     }
     position++;
-    temp += convert(length - 1);
+    temp += convertInstruction(length - 1);
     return temp;
 }
 
 void uintToStr(uint32_t u) {
-    char c [50];
-    char h [50];
+    char c [100];
+    char h [100];
     int size = 0;
-    sprintf(c, "%x", mem_read_32(NEXT_STATE.PC));
+    sprintf(c, "%x", u);
     // Tamanho a partir do primeiro não nulo
     while(c[size] != '\0') {
         size++;
