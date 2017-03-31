@@ -95,31 +95,41 @@ void process_instruction() {
                 NEXT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt];
                 break;
             case 27: // DIVU
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                uintToStr(CURRENT_STATE.REGS[rs]);
+                auxI = convertChar(conversion, 32, 0);
+                uintToStr(CURRENT_STATE.REGS[rt]);
+                NEXT_STATE.HI = (uint32_t) (auxI % convertChar(conversion, 32, 0));
+                NEXT_STATE.LO = (uint32_t) (auxI / convertChar(conversion, 32, 0));
                 break;
             case 32: // ADD
                 NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
                 break;
             case 33: // ADDU
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                uintToStr(CURRENT_STATE.REGS[rs]);
+                auxI = convertChar(conversion, 32, 0);
+                uintToStr(CURRENT_STATE.REGS[rt]);
+                NEXT_STATE.REGS[rd] = (uint32_t) (auxI + convertChar(conversion, 32, 0));
                 break;
             case 34: // SUB
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
                 break;
             case 35: // SUBU
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                uintToStr(CURRENT_STATE.REGS[rs]);
+                auxI = convertChar(conversion, 32, 0);
+                uintToStr(CURRENT_STATE.REGS[rt]);
+                NEXT_STATE.REGS[rd] = (uint32_t) (auxI - convertChar(conversion, 32, 0));
                 break;
             case 36: // AND
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] & CURRENT_STATE.REGS[rt];
                 break;
             case 37: // OR
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] | CURRENT_STATE.REGS[rt];
                 break;
             case 38: // XOR
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] ^ CURRENT_STATE.REGS[rt];
                 break;
             case 39: // NOR
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+                NEXT_STATE.REGS[rd] = ~ (CURRENT_STATE.REGS[rs] | CURRENT_STATE.REGS[rt]);
                 break;
             case 42: // SLT
                 NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] < CURRENT_STATE.REGS[rt] ? 1 : 0;
@@ -149,28 +159,54 @@ void process_instruction() {
         rs = convertInstruction(5);
         rt = convertInstruction(5);
         switch (type) {
+            case 1: // BLTZ OR BGEZ
+                switch(rt) {
+                    case 0:
+                        if(CURRENT_STATE.REGS[rs] < 0) { // BLTZ
+                            NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                        }
+                        break;
+                    case 1:
+                        if(CURRENT_STATE.REGS[rs] >= 0) { // BGEZ
+                            NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                        }
+                        break;
+                    case 16:
+                        if(CURRENT_STATE.REGS[rs] < 0) { // BLTZAL
+                            NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
+                            NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                        }
+                        break;
+                    case 17:
+                        if(CURRENT_STATE.REGS[rs] >= 0) { // BGEZAL
+                            NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
+                            NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                        }
+                        break;
+                }
+                break;
             case 4: // BEQ
                 if(NEXT_STATE.REGS[rs] == CURRENT_STATE.REGS[rt]) {
-                    NEXT_STATE.PC += complemento2(16) * 4 - 4;
+                    NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
                 }
                 break;
             case 5: // BNE
                 if(NEXT_STATE.REGS[rs] != CURRENT_STATE.REGS[rt]) {
-                    NEXT_STATE.PC += complemento2(16) * 4 - 4;
+                    NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
                 }
                 break;
             case 6: // BLEZ
                 if(NEXT_STATE.REGS[rs] <= 0) {
-                    NEXT_STATE.PC += complemento2(16) * 4 - 4;
+                    NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
                 }
                 break;
             case 7: // BGTZ
                 if(NEXT_STATE.REGS[rs] > 0) {
-                    NEXT_STATE.PC += complemento2(16) * 4 - 4;
+                    NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
                 }
                 break;
             case 8: // ADDI
-                immediate = complemento2(16);
+                immediate = complemento2Instruction(16);
                 NEXT_STATE.REGS[rt] = immediate + CURRENT_STATE.REGS[rs];
                 break;
             case 9: // ADDIU
@@ -178,7 +214,7 @@ void process_instruction() {
                 NEXT_STATE.REGS[rt] = immediate + CURRENT_STATE.REGS[rs];
             break;
             case 10:// SLTI
-                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < complemento2(16) ? 1 : 0;
+                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < complemento2Instruction(16) ? 1 : 0;
                 break;
             case 11:// SLTIU
                 NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < convertInstruction(16) ? 1 : 0;
@@ -193,45 +229,46 @@ void process_instruction() {
                 NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] ^ convertInstruction(16);
                 break;
             case 15:// LUI
-                NEXT_STATE.REGS[rt] = (uint32_t) (complemento2(16) << 16);
+                NEXT_STATE.REGS[rt] = (uint32_t) (complemento2Instruction(16) << 16);
                 break;
             case 32:// LB
-                uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
+                uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 8);
                 NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 8);
                 break;
             case 33:// LH
-                uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
+                uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 16);
                 NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 16);
                 break;
             case 35:// LW
-                NEXT_STATE.REGS[rt] = mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]);
+                NEXT_STATE.REGS[rt] = mem_read_32(
+                        complemento2Instruction(16) + CURRENT_STATE.REGS[rs]);
                 break;
             case 36:// LBU
-                uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
+                uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 8);
                 NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 8);
                 break;
             case 37:// LHU
-                uintToStr(mem_read_32(complemento2(16) + CURRENT_STATE.REGS[rs]));
+                uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
                 strncpy(subbuff, conversion, 16);
                 NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 16);
                 break;
             case 40:// SB
                 uintToStr(NEXT_STATE.REGS[rt]);
                 strncpy(subbuff, conversion, 8);
-                mem_write_32(complemento2(16) + CURRENT_STATE.REGS[rs],
+                mem_write_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs],
                              (uint32_t) complemento2Char(subbuff, 8));
                 break;
             case 41:// SH
                 uintToStr(NEXT_STATE.REGS[rt]);
                 strncpy(subbuff, conversion, 16);
-                mem_write_32(complemento2(16) + CURRENT_STATE.REGS[rs],
+                mem_write_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs],
                              (uint32_t) complemento2Char(subbuff, 16));
                 break;
             case 43:// SW
-                mem_write_32(complemento2(16) + CURRENT_STATE.REGS[rs], NEXT_STATE.REGS[rt]);
+                mem_write_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs], NEXT_STATE.REGS[rt]);
                 break;
         }
     }
@@ -278,7 +315,7 @@ int complemento2Char(char* c, int size) {
     return temp;
 }
 
-int complemento2(int length) {
+int complemento2Instruction(int length) {
     int temp = 0;
     if(instruction[position] == '1') {
         temp -= potencia(2, length - 1);
