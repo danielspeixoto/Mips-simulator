@@ -12,3 +12,5 @@ int complemento2Instruction(int length);
 int convertChar(char* c, int size, int begin);
 int complemento2Char(char* c, int size);
 void uintToStr(uint32_t u);
+int complemento2CharIndex(char* c, int size, int begin);
+

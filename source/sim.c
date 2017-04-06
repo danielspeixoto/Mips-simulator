@@ -10,7 +10,6 @@ void process_instruction() {
      * access memory. */
      uintToStr(mem_read_32(CURRENT_STATE.PC));
      strncpy(instruction, conversion, 33);
-     printf("%s\n", instruction);
      if(convertInstruction(32) == 12) {
         if(NEXT_STATE.REGS[2] == 10) {
             RUN_BIT = 0;
@@ -43,11 +42,11 @@ void process_instruction() {
                 break;
             case 4: // SLLV
                 uintToStr(CURRENT_STATE.REGS[rs]);
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] << convertChar((char *) conversion[11], 4, 0);
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] << convertChar(conversion, 4, 12);
                 break;
             case 6: // SRLV
                 uintToStr(CURRENT_STATE.REGS[rs]);
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] >> convertChar((char *) conversion[11], 4, 0);
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] >> convertChar(conversion, 4, 12);
                 break;
             case 7: // SRAV
                 uintToStr(CURRENT_STATE.REGS[rs]);
@@ -56,7 +55,7 @@ void process_instruction() {
                 if(CURRENT_STATE.REGS[rt] < 0) {
                     auxI = 1;
                 }
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] >> convertChar((char *) conversion[11], 4, 0);
+                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] >> convertChar(conversion, 4, 12);
                 if(auxI == 1) {
                     NEXT_STATE.REGS[rd] -= potencia(2, 31);
                 }
@@ -83,7 +82,7 @@ void process_instruction() {
             case 24: // MULT
                 uintToStr(CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt]);
                 NEXT_STATE.HI = (uint32_t) complemento2Char(conversion, 32);
-                NEXT_STATE.LO = (uint32_t) complemento2Char((char *) conversion[32], 32);
+                NEXT_STATE.LO = (uint32_t) complemento2CharIndex(conversion, 32, 32);
                 break;
             case 25: // MULTU
                 uintToStr(CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt]);
@@ -303,6 +302,15 @@ int convertChar(char* c, int size, int begin) {
         }
         p++;
     }
+    return temp;
+}
+
+int complemento2CharIndex(char* c, int size, int begin) {
+    int temp = 0;
+    if(c[begin] == '1') {
+        temp -= potencia(2, size - 1);
+    }
+    temp += convertChar(c, size - 1, begin + 1);
     return temp;
 }
 
