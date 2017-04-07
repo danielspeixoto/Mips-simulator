@@ -3,6 +3,7 @@
 #include "sim.h"
 #include <string.h>
 
+
 void process_instruction() {
     position = 0;
     /* execute one instruction here. You should use CURRENT_STATE and modify
@@ -13,7 +14,6 @@ void process_instruction() {
      if(convertInstruction(32) == 12) {
         if(NEXT_STATE.REGS[2] == 10) {
             RUN_BIT = 0;
-            return;
         }
     }
     char subbuff[100];
@@ -26,7 +26,7 @@ void process_instruction() {
             case 0: // SLL
                 NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] << shamt;
                 break;
-            case 1: // SRL
+            case 2: // SRL
                 NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] >> shamt;
                 break;
             case 3: // SRA
@@ -61,11 +61,11 @@ void process_instruction() {
                 }
                 break;
             case 8: // JR
-                NEXT_STATE.PC = CURRENT_STATE.REGS[rs] - 4;
+                NEXT_STATE.PC = CURRENT_STATE.REGS[rs];
                 break;
             case 9: // JALR
                 NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
-                NEXT_STATE.PC = CURRENT_STATE.REGS[rs] - 4;
+                NEXT_STATE.PC = CURRENT_STATE.REGS[rs];
                 break;
             case 16: // MFHI
                 NEXT_STATE.REGS[rd] = CURRENT_STATE.HI;
@@ -104,10 +104,7 @@ void process_instruction() {
                 NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
                 break;
             case 33: // ADDU
-                uintToStr(CURRENT_STATE.REGS[rs]);
-                auxI = convertChar(conversion, 32, 0);
-                uintToStr(CURRENT_STATE.REGS[rt]);
-                NEXT_STATE.REGS[rd] = (uint32_t) (auxI + convertChar(conversion, 32, 0));
+                NEXT_STATE.REGS[rd] = (uint32_t) (CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt]);
                 break;
             case 34: // SUB
                 NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
@@ -131,7 +128,7 @@ void process_instruction() {
                 NEXT_STATE.REGS[rd] = ~ (CURRENT_STATE.REGS[rs] | CURRENT_STATE.REGS[rt]);
                 break;
             case 42: // SLT
-                NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] < CURRENT_STATE.REGS[rt] ? 1 : 0;
+                NEXT_STATE.REGS[rd] = (int)CURRENT_STATE.REGS[rs] < (int)CURRENT_STATE.REGS[rt] ? 1 : 0;
                 break;
             case 43: // SLTU
                 uintToStr(CURRENT_STATE.REGS[rs]);
@@ -145,7 +142,7 @@ void process_instruction() {
         int address = convertInstruction(26) * 4;
         switch (type) {
             case 2: // J
-                NEXT_STATE.PC = (uint32_t) address - 4;
+                NEXT_STATE.PC = (uint32_t) (address - 4);
                 break;
             case 3: // JAL
                 // Salvando RA
@@ -161,47 +158,47 @@ void process_instruction() {
             case 1: // BLTZ OR BGEZ
                 switch(rt) {
                     case 0:
-                        if(CURRENT_STATE.REGS[rs] < 0) { // BLTZ
-                            NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                        if((int)CURRENT_STATE.REGS[rs] < 0) { // BLTZ
+                            NEXT_STATE.PC += complemento2Instruction(16) * 4;
                         }
                         break;
                     case 1:
-                        if(CURRENT_STATE.REGS[rs] >= 0) { // BGEZ
-                            NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                        if((int)CURRENT_STATE.REGS[rs] >= 0) { // BGEZ
+                            NEXT_STATE.PC += complemento2Instruction(16) * 4;
                         }
                         break;
                     case 16:
-                        if(CURRENT_STATE.REGS[rs] < 0) { // BLTZAL
+                        if((int)CURRENT_STATE.REGS[rs] < 0) { // BLTZAL
                             NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
-                            NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                            NEXT_STATE.PC += complemento2Instruction(16) * 4;
                         }
                         break;
                     case 17:
-                        if(CURRENT_STATE.REGS[rs] >= 0) { // BGEZAL
+                        if((int)CURRENT_STATE.REGS[rs] >= 0) { // BGEZAL
                             NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
-                            NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                            NEXT_STATE.PC += complemento2Instruction(16) * 4;
                         }
                         break;
                 }
                 break;
             case 4: // BEQ
                 if(NEXT_STATE.REGS[rs] == CURRENT_STATE.REGS[rt]) {
-                    NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                    NEXT_STATE.PC += complemento2Instruction(16) * 4;
                 }
                 break;
             case 5: // BNE
                 if(NEXT_STATE.REGS[rs] != CURRENT_STATE.REGS[rt]) {
-                    NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                    NEXT_STATE.PC += complemento2Instruction(16) * 4;
                 }
                 break;
             case 6: // BLEZ
                 if(NEXT_STATE.REGS[rs] <= 0) {
-                    NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                    NEXT_STATE.PC += complemento2Instruction(16) * 4;
                 }
                 break;
             case 7: // BGTZ
                 if(NEXT_STATE.REGS[rs] > 0) {
-                    NEXT_STATE.PC += complemento2Instruction(16) * 4 - 4;
+                    NEXT_STATE.PC += complemento2Instruction(16) * 4;
                 }
                 break;
             case 8: // ADDI
@@ -209,14 +206,14 @@ void process_instruction() {
                 NEXT_STATE.REGS[rt] = immediate + CURRENT_STATE.REGS[rs];
                 break;
             case 9: // ADDIU
-                immediate = convertInstruction(16);
+                immediate = complemento2Instruction(16);
                 NEXT_STATE.REGS[rt] = immediate + CURRENT_STATE.REGS[rs];
             break;
             case 10:// SLTI
-                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < complemento2Instruction(16) ? 1 : 0;
+                NEXT_STATE.REGS[rt] = (int)CURRENT_STATE.REGS[rs] < complemento2Instruction(16) ? 1 : 0;
                 break;
             case 11:// SLTIU
-                NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < convertInstruction(16) ? 1 : 0;
+                NEXT_STATE.REGS[rt] = (int)CURRENT_STATE.REGS[rs] < convertInstruction(16) ? 1 : 0;
                 break;
             case 12:// ANDI
                 NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] & convertInstruction(16);
@@ -244,14 +241,8 @@ void process_instruction() {
             case 36:// LBU
                 uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
                 NEXT_STATE.REGS[rt] = getLast(8, 32);
-                // uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
-                // strncpy(subbuff, conversion, 8);
-                // NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 8);
                 break;
             case 37:// LHU
-                // uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
-                // strncpy(subbuff, conversion, 16);
-                // NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 16);
                 uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
                 NEXT_STATE.REGS[rt] = getLast(16, 32);
                 break;
@@ -271,6 +262,14 @@ void process_instruction() {
         }
     }
     NEXT_STATE.PC += 4;
+}
+
+int makeUnsigned(uint32_t value) {
+    if(value < 0) {
+        // 2 elevado a 32
+        value += 4294967296;
+    }
+    return value;
 }
 
 int getLast(int length, int size) {
