@@ -1,4 +1,4 @@
-/home/danielspeixoto/Downloads/clion-2017.1/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" "/home/danielspeixoto/Downloads/Arquivos do lab1"
+/home/danielspeixoto/Programs/clion-2017.1/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" "/home/danielspeixoto/Downloads/Arquivos do lab1"
 -- The C compiler identification is GNU 6.2.1
 -- The CXX compiler identification is GNU 6.2.1
 -- Check for working C compiler: /usr/bin/cc

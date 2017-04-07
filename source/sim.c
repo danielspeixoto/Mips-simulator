@@ -9,7 +9,7 @@ void process_instruction() {
      * values in NEXT_STATE. You can call mem_read_32() and mem_write_32() to
      * access memory. */
      uintToStr(mem_read_32(CURRENT_STATE.PC));
-     strncpy(instruction, conversion, 33);
+     strncpy(instruction, conversion, 33); // SYSCALL
      if(convertInstruction(32) == 12) {
         if(NEXT_STATE.REGS[2] == 10) {
             RUN_BIT = 0;
@@ -232,39 +232,38 @@ void process_instruction() {
                 break;
             case 32:// LB
                 uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
-                strncpy(subbuff, conversion, 8);
-                NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 8);
+                NEXT_STATE.REGS[rt] = getLast(8, 32) + 4294967040;
                 break;
             case 33:// LH
                 uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
-                strncpy(subbuff, conversion, 16);
-                NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 16);
+                NEXT_STATE.REGS[rt] = getLast(16, 32) + 4294901760;
                 break;
             case 35:// LW
-                NEXT_STATE.REGS[rt] = mem_read_32(
-                        complemento2Instruction(16) + CURRENT_STATE.REGS[rs]);
+                NEXT_STATE.REGS[rt] = mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]);
                 break;
             case 36:// LBU
                 uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
-                strncpy(subbuff, conversion, 8);
-                NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 8);
+                NEXT_STATE.REGS[rt] = getLast(8, 32);
+                // uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
+                // strncpy(subbuff, conversion, 8);
+                // NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 8);
                 break;
             case 37:// LHU
+                // uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
+                // strncpy(subbuff, conversion, 16);
+                // NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 16);
                 uintToStr(mem_read_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs]));
-                strncpy(subbuff, conversion, 16);
-                NEXT_STATE.REGS[rt] = (uint32_t) complemento2Char(subbuff, 16);
+                NEXT_STATE.REGS[rt] = getLast(16, 32);
                 break;
             case 40:// SB
                 uintToStr(NEXT_STATE.REGS[rt]);
-                strncpy(subbuff, conversion, 8);
-                mem_write_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs],
-                             (uint32_t) complemento2Char(subbuff, 8));
+                strncpy(subbuff, conversion, 32);
+                mem_write_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs], getLast(8, 32));
                 break;
             case 41:// SH
                 uintToStr(NEXT_STATE.REGS[rt]);
-                strncpy(subbuff, conversion, 16);
-                mem_write_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs],
-                             (uint32_t) complemento2Char(subbuff, 16));
+                strncpy(subbuff, conversion, 32);
+                mem_write_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs], getLast(16, 32));
                 break;
             case 43:// SW
                 mem_write_32(complemento2Instruction(16) + CURRENT_STATE.REGS[rs], NEXT_STATE.REGS[rt]);
@@ -272,6 +271,18 @@ void process_instruction() {
         }
     }
     NEXT_STATE.PC += 4;
+}
+
+int getLast(int length, int size) {
+    int amount = 0;
+    int value = length;
+    for(int i = size - length; i < size; i++) {
+        value--;
+        if(conversion[i] == '1') {
+            amount += potencia(2, 31 - i);
+        }
+    }
+    return amount;
 }
 
 int potencia(int num, int p) {
